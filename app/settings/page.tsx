@@ -1,6 +1,5 @@
 'use client';
 export const dynamic = "force-dynamic";
-export const dynamic = "force-dynamic";
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -662,5 +661,6 @@ export default function SettingsPage() {
     </div>
   );
 }
+
 
 

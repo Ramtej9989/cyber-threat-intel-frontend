@@ -1,16 +1,25 @@
-import SidebarNav from './sidebar-nav';
-import TopNav from './top-nav';
+import React from 'react';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+interface TopNavProps {
+  collapsed: boolean;
+  toggleSidebar: () => void;
+}
+
+export default function TopNav({ collapsed, toggleSidebar }: TopNavProps) {
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <SidebarNav />
-      <div className="flex flex-col flex-1">
-        <TopNav />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+    <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between">
+        <button
+          onClick={toggleSidebar}
+          className="text-gray-600 hover:text-gray-900 focus:outline-none"
+        >
+          {collapsed ? '☰' : '✕'}
+        </button>
+        <h1 className="text-xl font-semibold text-gray-900">Cyber Threat Intel</h1>
+        <div className="flex items-center space-x-4">
+          {/* Add additional nav items here, e.g., user menu, notifications */}
+        </div>
       </div>
-    </div>
+    </header>
   );
 }

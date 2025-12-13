@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import {Button} from '@/components/ui/button';
 import axios from 'axios';
+import { API_URL, API_KEY } from '@/lib/api-config';
 
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'your-secret-key-for-api-auth';
 
 interface UploadState {
   isUploading: boolean;
@@ -50,63 +50,64 @@ export default function DataUploadForm() {
   };
 
   const uploadFile = async (
-    file: File | null,
-    endpoint: string, 
-    stateSetter: React.Dispatch<React.SetStateAction<UploadState>>
-  ): Promise<number | null> => {
-    if (!file) {
-      stateSetter({...initialUploadState, error: 'No file selected'});
-      return null;
-    }
+  file: File | null,
+  endpoint: string, 
+  stateSetter: React.Dispatch<React.SetStateAction<UploadState>>
+): Promise<number | null> => {
+  if (!file) {
+    stateSetter({...initialUploadState, error: 'No file selected'});
+    return null;
+  }
 
-    stateSetter({...initialUploadState, isUploading: true});
+  stateSetter({...initialUploadState, isUploading: true});
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              stateSetter(prev => ({...prev, progress: percentCompleted}));
-            }
+    const response = await axios.post(
+      `${API_URL}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            stateSetter(prev => ({...prev, progress: percentCompleted}));
           }
         }
-      );
+      }
+    );
 
-      stateSetter({...initialUploadState, success: true});
-      return response.data.count || 0;
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || 'Upload failed';
-      stateSetter({...initialUploadState, error: errorMsg});
-      return null;
-    }
-  };
+    stateSetter({...initialUploadState, success: true});
+    return response.data.count || 0;
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.detail || 'Upload failed';
+    stateSetter({...initialUploadState, error: errorMsg});
+    return null;
+  }
+};
 
-  const runDetection = async () => {
-    setDetectionState({ isRunning: true, completed: false, error: null });
+ const runDetection = async () => {
+  setDetectionState({ isRunning: true, completed: false, error: null });
+  
+  try {
+    await axios.post(
+      `${API_URL}/api/detection/run?api_key=${API_KEY}`
+    );
     
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/detection/run?api_key=${API_KEY}`
-      );
-      
-      setDetectionState({ isRunning: false, completed: true, error: null });
-    } catch (error: any) {
-      setDetectionState({
-        isRunning: false,
-        completed: false,
-        error: error.response?.data?.detail || 'Failed to run detection'
-      });
-    }
-  };
+    setDetectionState({ isRunning: false, completed: true, error: null });
+  } catch (error: any) {
+    setDetectionState({
+      isRunning: false,
+      completed: false,
+      error: error.response?.data?.detail || 'Failed to run detection'
+    });
+  }
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,6 +370,4 @@ export default function DataUploadForm() {
     </div>
   );
 }
-
-
 

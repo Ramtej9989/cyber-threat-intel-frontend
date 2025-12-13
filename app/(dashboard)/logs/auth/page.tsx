@@ -70,6 +70,7 @@ interface AuthStats {
 }
 
 export default function AuthLogsPage() {
+  "use client";
   const { data: session } = useSession();
   const [logs, setLogs] = useState<AuthLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuthLog[]>([]);
@@ -1194,4 +1195,5 @@ function generateDemoAuthLogs(): AuthLog[] {
 
   return logs;
 }
+
 

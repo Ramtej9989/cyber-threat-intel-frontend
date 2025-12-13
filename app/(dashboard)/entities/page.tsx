@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { 
@@ -50,7 +50,6 @@ const RISK_FACTORS = {
 };
 
 export default function EntitiesPage() {
-  "use client";
   const { data: session } = useSession();
   const [entities, setEntities] = useState<any[]>([]);
   const [filteredEntities, setFilteredEntities] = useState<any[]>([]);
@@ -1406,4 +1405,5 @@ function generatePlaceholderNetworkLogs(ip: string | null, count: number) {
   
   return logs;
 }
+
 

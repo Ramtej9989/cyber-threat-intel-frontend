@@ -27,7 +27,7 @@ export const Table = <T,>({
   emptyRowCount = 5,
   rowClassName,
   onRowClick,
-  keyExtractor = (item: any, index: number) => index
+  keyExtractor = (item: any) => (item._id ?? JSON.stringify(item)),
 }: TableProps<T>) => {
   // Generate empty rows for skeleton loading
   const emptyRows = isLoading
@@ -209,3 +209,4 @@ export const TablePagination = forwardRef<HTMLDivElement, PaginationProps>(
 TablePagination.displayName = 'TablePagination';
 
 export { TablePagination as Pagination };
+

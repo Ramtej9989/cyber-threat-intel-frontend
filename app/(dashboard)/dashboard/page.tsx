@@ -321,7 +321,7 @@ export default function DashboardPage() {
       }
     },
     scales: {
-      x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11, weight: '500' as const } } },
+      x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 11, weight: 500 as const } } },
       y: { grid: { color: 'rgba(30, 41, 59, 0.5)', drawBorder: false }, ticks: { color: '#64748b', font: { size: 11 } }, beginAtZero: true }
     },
   };
@@ -958,3 +958,4 @@ function getDefaultHighRiskEntities(): HighRiskEntity[] {
     { id: '5', name: '203.0.113.245', type: 'IP', score: 8.0, factor: 'Known threat actor (Threat level 10)', trend: 'stable' },
   ];
 }
+

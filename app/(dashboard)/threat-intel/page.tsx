@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import {
@@ -45,7 +45,6 @@ interface ThreatIntel {
 }
 
 export default function ThreatIntelPage() {
-  "use client";
   const { data: session } = useSession();
   const [indicators, setIndicators] = useState<ThreatIntel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -564,5 +563,6 @@ function generateDemoThreatIntel(): ThreatIntel[] {
 
   return demoData;
 }
+
 
 

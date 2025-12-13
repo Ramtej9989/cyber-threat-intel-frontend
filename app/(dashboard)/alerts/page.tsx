@@ -202,9 +202,9 @@ export default function AlertsPage() {
   // Bulk update alerts
   const bulkUpdateStatus = async (newStatus: string) => {
     setIsUpdating(true);
-    for (const alertId of selectedAlerts) {
-      await updateAlertStatus(alertId, newStatus);
-    }
+    for (const alertId of Array.from(selectedAlerts)) {
+  await updateAlertStatus(alertId, newStatus);
+}
     setSelectedAlerts(new Set());
     setShowBulkActions(false);
     setIsUpdating(false);

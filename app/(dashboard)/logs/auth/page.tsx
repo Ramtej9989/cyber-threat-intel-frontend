@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -70,7 +70,7 @@ interface AuthStats {
 }
 
 export default function AuthLogsPage() {
-  "use client";
+
   const { data: session } = useSession();
   const [logs, setLogs] = useState<AuthLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<AuthLog[]>([]);
@@ -1195,5 +1195,6 @@ function generateDemoAuthLogs(): AuthLog[] {
 
   return logs;
 }
+
 
 

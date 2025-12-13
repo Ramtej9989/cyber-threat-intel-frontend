@@ -45,6 +45,7 @@ interface ThreatIntel {
 }
 
 export default function ThreatIntelPage() {
+  "use client";
   const { data: session } = useSession();
   const [indicators, setIndicators] = useState<ThreatIntel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -563,4 +564,5 @@ function generateDemoThreatIntel(): ThreatIntel[] {
 
   return demoData;
 }
+
 

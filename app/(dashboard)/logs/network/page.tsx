@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import {
@@ -59,7 +59,6 @@ interface NetworkLogFilters {
 }
 
 export default function NetworkLogsPage() {
-  "use client";
   const { data: session } = useSession();
   const [logs, setLogs] = useState<NetworkLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<NetworkLog[]>([]);
@@ -941,4 +940,5 @@ function generateDemoNetworkLogs(): NetworkLog[] {
   
   return logs;
 }
+
 

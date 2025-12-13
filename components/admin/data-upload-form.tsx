@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import axios from 'axios';
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'your-secret-key-for-api-auth';
@@ -165,3 +165,4 @@ export default function DataUploadForm() {
     
   return (
     <div className="bg-white
+

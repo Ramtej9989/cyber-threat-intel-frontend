@@ -81,6 +81,7 @@ interface HighRiskEntity {
 }
 
 export default function DashboardPage() {
+  "use client";
   const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -958,4 +959,5 @@ function getDefaultHighRiskEntities(): HighRiskEntity[] {
     { id: '5', name: '203.0.113.245', type: 'IP', score: 8.0, factor: 'Known threat actor (Threat level 10)', trend: 'stable' },
   ];
 }
+
 

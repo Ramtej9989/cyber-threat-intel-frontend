@@ -167,7 +167,7 @@ export default function LogTable<T extends AuthLog | NetworkLog>({
     }
   ];
 
-  const columns = logType === 'auth' ? authLogColumns : networkLogColumns;
+  const columns = (logType === 'auth' ? authLogColumns : networkLogColumns) as any;
 
   // Helper function to format bytes
   function formatBytes(bytes: number, decimals = 1): string {

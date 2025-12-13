@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = "force-dynamic";
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import {
@@ -59,7 +59,6 @@ interface AlertFilters {
 }
 
 export default function AlertsPage() {
-  "use client";
   const { data: session } = useSession();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [filteredAlerts, setFilteredAlerts] = useState<Alert[]>([]);
@@ -911,4 +910,5 @@ function generateDemoAlerts(): Alert[] {
     };
   });
 }
+
 

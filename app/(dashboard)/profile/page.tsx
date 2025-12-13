@@ -1,9 +1,8 @@
 'use client';
-
+export const dynamic = "force-dynamic";
 import { useSession } from 'next-auth/react';
 
 export default function ProfilePage() {
-  "use client";
   const { data: session } = useSession();
 
   return (
@@ -80,4 +79,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
 

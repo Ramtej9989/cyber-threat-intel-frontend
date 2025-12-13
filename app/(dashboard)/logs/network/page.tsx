@@ -59,6 +59,7 @@ interface NetworkLogFilters {
 }
 
 export default function NetworkLogsPage() {
+  "use client";
   const { data: session } = useSession();
   const [logs, setLogs] = useState<NetworkLog[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<NetworkLog[]>([]);
@@ -940,3 +941,4 @@ function generateDemoNetworkLogs(): NetworkLog[] {
   
   return logs;
 }
+

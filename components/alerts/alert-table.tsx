@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Table, TablePagination } from '@/components/ui/table';
+import { Table, TablePagination, type Column } from '@/components/ui/table';
 import { Dropdown } from '@/components/ui/dropdown';
 import { formatDate, getSeverityBgColor } from '@/lib/utils';
 
@@ -30,7 +29,7 @@ interface AlertTableProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   onAlertSelect: (alert: Alert) => void;
-  onStatusChange?: (alertId: string, status: string) => void;
+  onStatusChange?: (alertId: string, status: Alert['status']) => void;
   selectedAlertId?: string;
 }
 
@@ -45,50 +44,62 @@ export default function AlertTable({
   onStatusChange,
   selectedAlertId,
 }: AlertTableProps) {
-  // Define column configuration for the table
-  const columns = [
+  const columns: Column<Alert>[] = [
     {
       header: 'Severity',
       accessorKey: 'severity',
-      cell: (alert: Alert) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityBgColor(alert.severity === 'CRITICAL' ? 10 : alert.severity === 'HIGH' ? 8 : alert.severity === 'MEDIUM' ? 5 : 2)}`}>
+      className: 'w-24',
+      cell: (alert) => (
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityBgColor(
+            alert.severity === 'CRITICAL'
+              ? 10
+              : alert.severity === 'HIGH'
+              ? 8
+              : alert.severity === 'MEDIUM'
+              ? 5
+              : 2
+          )}`}
+        >
           {alert.severity}
         </span>
       ),
-      className: 'w-24'
     },
     {
       header: 'Title',
       accessorKey: 'title',
-      cell: (alert: Alert) => (
+      cell: (alert) => (
         <div className="max-w-md">
           <div className="font-medium text-sm">{alert.title}</div>
-          <div className="text-xs text-gray-500 truncate">{alert.description}</div>
+          <div className="text-xs text-gray-500 truncate">
+            {alert.description}
+          </div>
         </div>
-      )
+      ),
     },
     {
       header: 'Time',
       accessorKey: 'timestamp',
-      cell: (alert: Alert) => (
+      className: 'w-40',
+      cell: (alert) => (
         <span className="text-sm text-gray-500">
           {formatDate(alert.timestamp)}
         </span>
       ),
-      className: 'w-40'
     },
     {
       header: 'Status',
       accessorKey: 'status',
-      cell: (alert: Alert) => {
-        const statusColors = {
+      className: 'w-32',
+      cell: (alert) => {
+        const statusColors: Record<Alert['status'], string> = {
           NEW: 'bg-blue-100 text-blue-800',
           IN_PROGRESS: 'bg-purple-100 text-purple-800',
           RESOLVED: 'bg-green-100 text-green-800',
           FALSE_POSITIVE: 'bg-gray-100 text-gray-800',
         };
-        
-        const statusLabels = {
+
+        const statusLabels: Record<Alert['status'], string> = {
           NEW: 'New',
           IN_PROGRESS: 'In Progress',
           RESOLVED: 'Resolved',
@@ -96,7 +107,6 @@ export default function AlertTable({
         };
 
         if (onStatusChange) {
-          // If status can be changed, show dropdown
           return (
             <Dropdown
               items={[
@@ -106,21 +116,23 @@ export default function AlertTable({
                 { label: 'False Positive', value: 'FALSE_POSITIVE' },
               ]}
               value={alert.status}
-              onChange={(value) => onStatusChange(alert._id, value as string)}
-              buttonClassName={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[alert.status as keyof typeof statusColors]}`}
+              onChange={(value) =>
+                onStatusChange(alert._id, value as Alert['status'])
+              }
+              buttonClassName={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[alert.status]}`}
             />
           );
         }
-        
-        // Otherwise show static status
+
         return (
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[alert.status as keyof typeof statusColors]}`}>
-            {statusLabels[alert.status as keyof typeof statusLabels]}
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[alert.status]}`}
+          >
+            {statusLabels[alert.status]}
           </span>
         );
       },
-      className: 'w-32'
-    }
+    },
   ];
 
   return (
@@ -134,7 +146,9 @@ export default function AlertTable({
         data={alerts}
         isLoading={isLoading}
         noDataMessage="No alerts found"
-        rowClassName={(item) => item._id === selectedAlertId ? 'bg-blue-50' : ''}
+        rowClassName={(item) =>
+          item._id === selectedAlertId ? 'bg-blue-50' : ''
+        }
         onRowClick={onAlertSelect}
         keyExtractor={(item) => item._id}
       />

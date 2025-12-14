@@ -79,9 +79,18 @@ export default function DataUploadForm() {
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('Making upload request to:', `${API_URL}/api/ingestion/upload/${endpoint}`);
+      let url;
+      if (process.env.NODE_ENV === 'production') {
+        // In production, use Next.js API routes as proxy
+        url = `/api/upload?endpoint=${endpoint}`;
+      } else {
+        // In development, use direct backend URL
+        url = `${API_URL}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`;
+      }
+
+      console.log('Making upload request to:', url);
       const response = await axios.post(
-        `${API_URL}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`,
+        url,
         formData,
         {
           headers: {
@@ -156,15 +165,24 @@ export default function DataUploadForm() {
     setDetectionState({ isRunning: true, completed: false, error: null });
     
     try {
-      console.log('Making detection request to:', `${API_URL}/api/detection/run`);
+      let url;
+      if (process.env.NODE_ENV === 'production') {
+        // In production, use Next.js API routes as proxy
+        url = `/api/detection`;
+      } else {
+        // In development, use direct backend URL
+        url = `${API_URL}/api/detection/run?api_key=${API_KEY}`;
+      }
+
+      console.log('Making detection request to:', url);
       const response = await axios.post(
-        `${API_URL}/api/detection/run?api_key=${API_KEY}`,
+        url,
         { hours_back: 24 },
         {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 60000 // 60 seconds timeout
+          timeout: 120000 // 2 minutes timeout
         }
       );
       

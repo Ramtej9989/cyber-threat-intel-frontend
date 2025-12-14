@@ -1,29 +1,32 @@
-import axios from 'axios';
-
 export default async function handler(req, res) {
-  const { url, method = 'GET', body, headers = {} } = req.query;
-  
-  // Make sure the API key is included
+  const targetUrl = req.query.url;
   const apiKey = 'API_KEY_7F9X_K2P8_QM2L_Z8R1X';
-  const targetUrl = `https://cyber-threat-intel-analytics.onrender.com${url}?api_key=${apiKey}`;
   
+  if (!targetUrl) {
+    return res.status(400).json({ error: 'URL parameter is required' });
+  }
+
   try {
-    const response = await axios({
-      method,
-      url: targetUrl,
-      data: body ? JSON.parse(body) : undefined,
+    // Build the full target URL
+    const fullUrl = `https://cyber-threat-intel-analytics.onrender.com${targetUrl}`;
+    const urlWithKey = `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}api_key=${apiKey}`;
+    
+    // Forward the request
+    const response = await fetch(urlWithKey, {
+      method: req.method,
       headers: {
         'Content-Type': 'application/json',
-        ...headers
-      }
+      },
+      body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
     });
     
-    return res.status(response.status).json(response.data);
+    // Get response data
+    const data = await response.json();
+    
+    // Return response
+    return res.status(response.status).json(data);
   } catch (error) {
     console.error('Proxy error:', error);
-    return res.status(error.response?.status || 500).json({
-      error: error.message,
-      details: error.response?.data
-    });
+    return res.status(500).json({ error: 'Failed to fetch from API' });
   }
 }

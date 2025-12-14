@@ -94,12 +94,22 @@ export default function DataUploadForm() {
   setDetectionState({ isRunning: true, completed: false, error: null });
   
   try {
-    await axios.post(
-      `${API_URL}/api/detection/run?api_key=${API_KEY}`
+    console.log('Making detection request to:', `${API_URL}/api/detection/run`);
+    const response = await axios.post(
+      `${API_URL}/api/detection/run?api_key=${API_KEY}`,
+      {},
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
-    
+    console.log('Detection response:', response.data);
     setDetectionState({ isRunning: false, completed: true, error: null });
   } catch (error: any) {
+    console.error('Detection error:', error);
+    console.error('Response data:', error.response?.data);
+    console.error('Status:', error.response?.status);
     setDetectionState({
       isRunning: false,
       completed: false,
@@ -107,6 +117,7 @@ export default function DataUploadForm() {
     });
   }
 };
+
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -370,4 +381,5 @@ export default function DataUploadForm() {
     </div>
   );
 }
+
 

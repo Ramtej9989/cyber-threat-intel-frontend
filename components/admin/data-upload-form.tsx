@@ -65,6 +65,7 @@ export default function DataUploadForm() {
     const formData = new FormData();
     formData.append('file', file);
 
+    console.log('Making upload request to:', `${API_URL}/api/ingestion/upload/${endpoint}`);
     const response = await axios.post(
       `${API_URL}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`,
       formData,
@@ -77,18 +78,33 @@ export default function DataUploadForm() {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             stateSetter(prev => ({...prev, progress: percentCompleted}));
           }
-        }
+        },
+        timeout: 30000 // 30 seconds timeout
       }
     );
 
+    console.log('Upload response:', response.data);
     stateSetter({...initialUploadState, success: true});
     return response.data.count || 0;
   } catch (error: any) {
-    const errorMsg = error.response?.data?.detail || 'Upload failed';
+    console.error('Upload error:', error);
+    console.error('Response data:', error.response?.data);
+    console.error('Status:', error.response?.status);
+    
+    let errorMsg = 'Upload failed';
+    if (error.code === 'ECONNABORTED') {
+      errorMsg = 'Upload timeout - please try again';
+    } else if (error.response?.status === 413) {
+      errorMsg = 'File too large';
+    } else if (error.response?.data?.detail) {
+      errorMsg = error.response.data.detail;
+    }
+    
     stateSetter({...initialUploadState, error: errorMsg});
     return null;
   }
 };
+
 
  const runDetection = async () => {
   setDetectionState({ isRunning: true, completed: false, error: null });
@@ -381,5 +397,4 @@ export default function DataUploadForm() {
     </div>
   );
 }
-
 

@@ -1,196 +1,250 @@
-'use client';
-
-import { useState } from 'react';
-import {Button} from '@/components/ui/button';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { API_URL, API_KEY } from '@/lib/api-config';
 
+// Maximum file size (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+// Types
 interface UploadState {
   isUploading: boolean;
   progress: number;
-  error: string | null;
   success: boolean;
+  error: string | null;
+}
+
+interface DetectionState {
+  isRunning: boolean;
+  completed: boolean;
+  error: string | null;
 }
 
 const initialUploadState: UploadState = {
   isUploading: false,
   progress: 0,
-  error: null,
-  success: false
+  success: false,
+  error: null
 };
 
 export default function DataUploadForm() {
-  // State for file uploads
+  // File states
   const [assets, setAssets] = useState<File | null>(null);
   const [threatIntel, setThreatIntel] = useState<File | null>(null);
   const [authLogs, setAuthLogs] = useState<File | null>(null);
   const [networkLogs, setNetworkLogs] = useState<File | null>(null);
 
-  // State for upload progress
+  // Upload states
   const [assetsState, setAssetsState] = useState<UploadState>({...initialUploadState});
   const [threatIntelState, setThreatIntelState] = useState<UploadState>({...initialUploadState});
   const [authLogsState, setAuthLogsState] = useState<UploadState>({...initialUploadState});
   const [networkLogsState, setNetworkLogsState] = useState<UploadState>({...initialUploadState});
-  
-  // Summary of uploads
-  const [uploadSummary, setUploadSummary] = useState<{[key: string]: number}>({});
-  
-  // Running detection state
-  const [detectionState, setDetectionState] = useState({
+
+  // Detection state
+  const [detectionState, setDetectionState] = useState<DetectionState>({
     isRunning: false,
     completed: false,
-    error: null as string | null
+    error: null
   });
 
+  // Upload summary
+  const [uploadSummary, setUploadSummary] = useState<Record<string, number>>({});
+  
+  // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File | null>>) => {
-    if (e.target.files && e.target.files[0]) {
-      setter(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`);
+        e.target.value = '';
+        return;
+      }
+      setter(file);
     }
   };
 
+  // Upload a file
   const uploadFile = async (
-  file: File | null,
-  endpoint: string, 
-  stateSetter: React.Dispatch<React.SetStateAction<UploadState>>
-): Promise<number | null> => {
-  if (!file) {
-    stateSetter({...initialUploadState, error: 'No file selected'});
-    return null;
-  }
-
-  stateSetter({...initialUploadState, isUploading: true});
-
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    console.log('Making upload request to:', `${API_URL}/api/ingestion/upload/${endpoint}`);
-    const response = await axios.post(
-      `${API_URL}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            stateSetter(prev => ({...prev, progress: percentCompleted}));
-          }
-        },
-        timeout: 30000 // 30 seconds timeout
-      }
-    );
-
-    console.log('Upload response:', response.data);
-    stateSetter({...initialUploadState, success: true});
-    return response.data.count || 0;
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    console.error('Response data:', error.response?.data);
-    console.error('Status:', error.response?.status);
-    
-    let errorMsg = 'Upload failed';
-    if (error.code === 'ECONNABORTED') {
-      errorMsg = 'Upload timeout - please try again';
-    } else if (error.response?.status === 413) {
-      errorMsg = 'File too large';
-    } else if (error.response?.data?.detail) {
-      errorMsg = error.response.data.detail;
+    file: File | null,
+    endpoint: string, 
+    stateSetter: React.Dispatch<React.SetStateAction<UploadState>>
+  ): Promise<number | null> => {
+    if (!file) {
+      stateSetter({...initialUploadState, error: 'No file selected'});
+      return null;
     }
-    
-    stateSetter({...initialUploadState, error: errorMsg});
-    return null;
-  }
-};
 
+    stateSetter({...initialUploadState, isUploading: true});
 
- const runDetection = async () => {
-  setDetectionState({ isRunning: true, completed: false, error: null });
-  
-  try {
-    console.log('Making detection request to:', `${API_URL}/api/detection/run`);
-    const response = await axios.post(
-      `${API_URL}/api/detection/run?api_key=${API_KEY}`,
-      {},
-      {
-        headers: {
-          'Content-Type': 'application/json'
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('Making upload request to:', `${API_URL}/api/ingestion/upload/${endpoint}`);
+      const response = await axios.post(
+        `${API_URL}/api/ingestion/upload/${endpoint}?api_key=${API_KEY}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              stateSetter(prev => ({...prev, progress: percentCompleted}));
+            }
+          },
+          timeout: 60000 // 60 seconds timeout
         }
+      );
+
+      console.log('Upload response:', response.data);
+      stateSetter({...initialUploadState, success: true});
+      return response.data.count || 0;
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Status:', error.response?.status);
+      
+      let errorMsg = 'Upload failed';
+      if (error.code === 'ECONNABORTED') {
+        errorMsg = 'Upload timeout - please try again';
+      } else if (error.response?.status === 413) {
+        errorMsg = 'File too large';
+      } else if (error.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
       }
-    );
-    console.log('Detection response:', response.data);
-    setDetectionState({ isRunning: false, completed: true, error: null });
-  } catch (error: any) {
-    console.error('Detection error:', error);
-    console.error('Response data:', error.response?.data);
-    console.error('Status:', error.response?.status);
-    setDetectionState({
-      isRunning: false,
-      completed: false,
-      error: error.response?.data?.detail || 'Failed to run detection'
-    });
-  }
-};
+      
+      stateSetter({...initialUploadState, error: errorMsg});
+      return null;
+    }
+  };
 
-
-
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reset summary
+
+    // Reset upload summary
     setUploadSummary({});
 
-    // Upload files in parallel
-    const results = await Promise.all([
-      uploadFile(assets, 'assets', setAssetsState),
-      uploadFile(threatIntel, 'threat_intel', setThreatIntelState),
-      uploadFile(authLogs, 'auth_logs', setAuthLogsState),
-      uploadFile(networkLogs, 'network_logs', setNetworkLogsState)
-    ]);
+    // Upload assets
+    const assetsCount = await uploadFile(assets, 'assets', setAssetsState);
+    if (assetsCount !== null) {
+      setUploadSummary(prev => ({...prev, Assets: assetsCount}));
+    }
 
-    // Summarize results
-    const summary: {[key: string]: number} = {};
-    if (results[0] !== null) summary.assets = results[0];
-    if (results[1] !== null) summary.threatIntel = results[1];
-    if (results[2] !== null) summary.authLogs = results[2];
-    if (results[3] !== null) summary.networkLogs = results[3];
+    // Upload threat intel
+    const threatIntelCount = await uploadFile(threatIntel, 'threat_intel', setThreatIntelState);
+    if (threatIntelCount !== null) {
+      setUploadSummary(prev => ({...prev, 'Threat Intelligence': threatIntelCount}));
+    }
 
-    setUploadSummary(summary);
+    // Upload auth logs
+    const authLogsCount = await uploadFile(authLogs, 'auth_logs', setAuthLogsState);
+    if (authLogsCount !== null) {
+      setUploadSummary(prev => ({...prev, 'Auth Logs': authLogsCount}));
+    }
+
+    // Upload network logs
+    const networkLogsCount = await uploadFile(networkLogs, 'network_logs', setNetworkLogsState);
+    if (networkLogsCount !== null) {
+      setUploadSummary(prev => ({...prev, 'Network Logs': networkLogsCount}));
+    }
   };
 
+  // Run detection
+  const runDetection = async () => {
+    setDetectionState({ isRunning: true, completed: false, error: null });
+    
+    try {
+      console.log('Making detection request to:', `${API_URL}/api/detection/run`);
+      const response = await axios.post(
+        `${API_URL}/api/detection/run?api_key=${API_KEY}`,
+        { hours_back: 24 },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 60000 // 60 seconds timeout
+        }
+      );
+      
+      console.log('Detection response:', response.data);
+      setDetectionState({ isRunning: false, completed: true, error: null });
+    } catch (error: any) {
+      console.error('Detection error:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Status:', error.response?.status);
+      
+      let errorMsg = 'Failed to run detection';
+      if (error.code === 'ECONNABORTED') {
+        errorMsg = 'Detection timeout - please try again';
+      } else if (error.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      }
+      
+      setDetectionState({
+        isRunning: false,
+        completed: false,
+        error: errorMsg
+      });
+    }
+  };
+
+  // Helper to check if any uploads are in progress
+  const anyUploading = 
+    assetsState.isUploading || 
+    threatIntelState.isUploading || 
+    authLogsState.isUploading || 
+    networkLogsState.isUploading;
+
+  // Helper to check if all uploads were successful
+  const allSuccessful = 
+    assetsState.success && 
+    threatIntelState.success && 
+    authLogsState.success && 
+    networkLogsState.success;
+
+  // Render upload status
   const renderUploadStatus = (state: UploadState) => {
     if (state.isUploading) {
       return (
-        <div className="ml-2">
-          <div className="h-2 w-24 bg-gray-200 rounded-full overflow-hidden">
+        <div className="ml-2 flex items-center">
+          <div className="w-16 bg-[#1e293b] rounded-full h-1.5 mr-2">
             <div 
-              className="h-full bg-blue-600 rounded-full" 
+              className="bg-blue-500 h-1.5 rounded-full" 
               style={{ width: `${state.progress}%` }}
             ></div>
           </div>
+          <span className="text-xs text-gray-400">{state.progress}%</span>
         </div>
       );
     }
 
     if (state.success) {
-      return <span className="ml-2 text-sm text-green-600">✓ Uploaded</span>;
+      return (
+        <div className="ml-2 text-green-400 flex items-center">
+          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-xs">Uploaded</span>
+        </div>
+      );
     }
 
     if (state.error) {
-      return <span className="ml-2 text-sm text-red-500">{state.error}</span>;
+      return (
+        <div className="ml-2 text-red-400 flex items-center">
+          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span className="text-xs">Failed</span>
+        </div>
+      );
     }
 
     return null;
   };
 
-  const anyUploading = assetsState.isUploading || threatIntelState.isUploading || 
-    authLogsState.isUploading || networkLogsState.isUploading;
-
-  const allSuccessful = assetsState.success && threatIntelState.success && 
-    authLogsState.success && networkLogsState.success;
-    
   return (
     <div className="bg-[#151c2c]/80 backdrop-blur-xl border border-[#1e293b] rounded-xl p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -211,6 +265,9 @@ export default function DataUploadForm() {
           <p className="mt-1 text-xs text-gray-500">
             Upload CSV containing host information and criticality ratings
           </p>
+          {assetsState.error && (
+            <p className="mt-1 text-xs text-red-400">{assetsState.error}</p>
+          )}
         </div>
 
         {/* Threat Intel Upload */}
@@ -230,6 +287,9 @@ export default function DataUploadForm() {
           <p className="mt-1 text-xs text-gray-500">
             Upload threat intelligence indicators (IPs, domains, hashes)
           </p>
+          {threatIntelState.error && (
+            <p className="mt-1 text-xs text-red-400">{threatIntelState.error}</p>
+          )}
         </div>
 
         {/* Auth Logs Upload */}
@@ -249,6 +309,9 @@ export default function DataUploadForm() {
           <p className="mt-1 text-xs text-gray-500">
             Upload authentication events with login attempts
           </p>
+          {authLogsState.error && (
+            <p className="mt-1 text-xs text-red-400">{authLogsState.error}</p>
+          )}
         </div>
 
         {/* Network Logs Upload */}
@@ -268,6 +331,9 @@ export default function DataUploadForm() {
           <p className="mt-1 text-xs text-gray-500">
             Upload network traffic logs showing connections
           </p>
+          {networkLogsState.error && (
+            <p className="mt-1 text-xs text-red-400">{networkLogsState.error}</p>
+          )}
         </div>
 
         {/* Upload Summary */}
@@ -281,31 +347,6 @@ export default function DataUploadForm() {
                   <span className="text-gray-300">{count} records</span>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Error Messages */}
-        {[assetsState, threatIntelState, authLogsState, networkLogsState].some(state => state.error) && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <div className="flex gap-3">
-              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div className="space-y-1">
-                {[
-                  { state: assetsState, name: 'Assets' },
-                  { state: threatIntelState, name: 'Threat Intel' },
-                  { state: authLogsState, name: 'Auth Logs' },
-                  { state: networkLogsState, name: 'Network Logs' }
-                ].map(({ state, name }) => (
-                  state.error && (
-                    <p key={name} className="text-sm text-red-400">
-                      {name}: {state.error}
-                    </p>
-                  )
-                ))}
-              </div>
             </div>
           </div>
         )}
@@ -389,7 +430,12 @@ export default function DataUploadForm() {
               <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <p className="text-sm text-red-400">{detectionState.error}</p>
+              <div>
+                <p className="text-sm text-red-400">{detectionState.error}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Check the console for more details or try again later.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -397,4 +443,3 @@ export default function DataUploadForm() {
     </div>
   );
 }
-

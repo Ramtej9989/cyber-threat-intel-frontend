@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ Cyber Threat Intelligence & SOC Analytics – Frontend
 
-## Getting Started
+A modern, responsive SOC dashboard built using Next.js that visualizes security logs, alerts, threat intelligence, and entity risk scores in near real time.
 
-First, run the development server:
+This frontend connects to a FastAPI backend and simulates how real-world Security Operations Center (SOC) dashboards work.
+
+---
+
+## 🌐 Live Application
+
+Frontend (Vercel):  
+https://cyber-threat-intel-frontend.vercel.app
+
+Backend API (Render):  
+https://cyber-threat-intel-analytics.onrender.com
+
+---
+
+## 🎯 Project Goal
+
+To design a professional SOC-style dashboard that:
+- Visualizes cyber security data clearly
+- Displays alerts, logs, and threats in real time
+- Enables analysts to investigate incidents
+- Demonstrates full-stack cybersecurity application development
+
+---
+
+## 🧠 Key Features
+
+- Secure login using credentials (NextAuth)
+- Interactive SOC dashboard with charts & tables
+- Network & authentication log visualization
+- Alert monitoring and status management
+- Threat intelligence exploration
+- Entity risk score tracking (Users, IPs, Hosts)
+- Fully responsive UI (desktop & tablet)
+- Clean, SOC-inspired design
+
+---
+
+## 🛠️ Tech Stack
+
+Framework: Next.js (App Router)  
+Language: TypeScript  
+UI: Tailwind CSS  
+Auth: NextAuth (Credentials Provider)  
+Charts: Chart.js / Recharts  
+Deployment: Vercel  
+
+---
+
+## 📂 Project Structure
+
+cyber-threat-intel-frontend/
+├── app/
+│   ├── (auth)/
+│   ├── (dashboard)/
+│   │   ├── dashboard/
+│   │   ├── alerts/
+│   │   ├── entities/
+│   │   ├── threat-intel/
+│   │   └── logs/
+│   ├── api/
+│   │   └── auth/[...nextauth]/
+│   └── layout.tsx
+├── components/
+│   ├── ui/
+│   ├── charts/
+│   ├── alerts/
+│   ├── entities/
+│   └── layout/
+├── lib/
+│   ├── api.ts
+│   ├── auth.ts
+│   └── utils.ts
+├── public/
+├── package.json
+└── README.md
+
+---
+
+## ⚙️ Environment Variables
+
+Set the following environment variables in **Vercel**:
+
+NEXT_PUBLIC_API_URL=https://cyber-threat-intel-analytics.onrender.com  
+NEXTAUTH_URL=https://cyber-threat-intel-frontend.vercel.app 
+NEXTAUTH_SECRET=your_nextauth_secret  
+MONGODB_URI=your_mongodb_connection_string  
+
+---
+
+## 🔐 Authentication Flow
+
+- Uses **NextAuth Credentials Provider**
+- User credentials are validated against MongoDB
+- JWT-based session management
+- Role-based access support (admin / analyst)
+
+---
+
+## 📊 Dashboard Modules
+
+### Dashboard
+- Alerts overview
+- Risk score charts
+- Severity distribution
+- Activity timeline
+
+### Alerts
+- View and update alert status
+- Severity-based styling
+- Pagination & filtering
+
+### Logs
+- Network logs
+- Authentication logs
+- Timeline-based inspection
+
+### Entities
+- Risk scoring for Users, IPs, Hosts
+- Visual risk indicators
+- Recalculation support
+
+### Threat Intelligence
+- Indicators of Compromise (IOCs)
+- Source attribution
+- Threat severity analysis
+
+---
+
+## ▶️ Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
